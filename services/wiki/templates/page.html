@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ page.title }} — Joons Wiki{% endblock %}
+{% block description %}{{ page.summary }}{% endblock %}
+
+{% block content %}
+<div class="crumb fade-in">
+  <a href="/">홈</a><span class="sep">›</span>
+  <a href="/#{{ page.section }}">{{ section_label(page.section) }}</a><span class="sep">›</span>
+  <span style="color:var(--ink)">{{ page.title }}</span>
+</div>
+
+<div class="page-eyebrow fade-in" style="animation-delay:.04s">
+  {{ section_icon(page.section) or '§' }}
+  {{ section_label(page.section) }}
+</div>
+
+<h1 class="page-title fade-in" id="top">{{ page.title }}</h1>
+<p class="lead fade-in" style="animation-delay:.06s">{{ page.summary }}</p>
+
+<div class="meta-row fade-in" style="animation-delay:.08s">
+  <span class="meta-chip"><span class="dot"></span> {{ now.strftime('%Y-%m-%d') }} 수정</span>
+  <span class="meta-chip" style="font-family:var(--mono)">{{ page.path.name }}</span>
+</div>
+
+<div class="prose fade-in" id="body" style="animation-delay:.1s">
+  {{ page.html | safe }}
+</div>
+
+<hr class="rule">
+
+<!-- prev / next -->
+<div class="pn">
+  {% if prev %}
+  <a href="{{ prev.url() }}" class="prev">
+    <div class="k">← 이전</div>
+    <div class="t">{{ prev.nav.get('label', prev.title) }}</div>
+  </a>
+  {% else %}<div class="none"></div>{% endif %}
+  {% if nxt %}
+  <a href="{{ nxt.url() }}" class="next">
+    <div class="k">다음 →</div>
+    <div class="t">{{ nxt.nav.get('label', nxt.title) }}</div>
+  </a>
+  {% else %}<div class="none"></div>{% endif %}
+</div>
+
+<footer class="foot">
+  <span>Joons Wiki · {{ now.strftime('%Y-%m-%d %H:%M') }} KST</span>
+  <span class="links">
+    <a href="/">홈</a>
+    <a href="/search?q={{ page.section }}">이 섹션 검색</a>
+  </span>
+</footer>
+{% endblock %}
+
+{% block toc %}
+<h5>목차</h5>
+{% set headings = page.toc %}
+{% if headings %}
+<ol class="toc-list">
+  {% for h in headings %}
+  <li>
+    <a href="#{{ h.id }}" data-anchor="{{ h.id }}" class="{{ 'toc-sub' if h.level > 2 else '' }}">{{ h.title }}</a>
+  </li>
+  {% endfor %}
+</ol>
+{% else %}
+<div class="nav-empty">목차가 없습니다</div>
+{% endif %}
+{% endblock %}

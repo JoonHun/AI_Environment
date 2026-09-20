@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Joons Wiki{% endblock %}</title>
+<meta name="description" content="{% block description %}Joons Wiki — 시스템 셋업 &amp; 작업 문서{% endblock %}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2322d3ee'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='16' font-weight='800' fill='%2304121a' text-anchor='middle'%3EJ%3C/text%3E%3C/svg%3E">
+{% block head %}{% endblock %}
+</head>
+<body>
+<div id="progress"></div>
+
+<!-- ============ TOP BAR ============ -->
+<header class="topbar top">
+  <button class="iconbtn menu" aria-label="메뉴" style="display:none">☰</button>
+  <a class="brand" href="/">
+    <span class="glyph" data-i="J"></span>
+    <b>Joons&nbsp;Wiki</b>
+  </a>
+  <small style="color:var(--ink-3);font-size:12px;font-family:var(--mono)">docs · setup</small>
+  <div class="spacer"></div>
+  <form class="search" action="/search" method="get">
+    <span class="ico" aria-hidden="true">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    </span>
+    <input type="text" name="q" placeholder="문서 검색…" autocomplete="off" value="{{ request.args.get('q','') if request is defined else '' }}">
+    <span class="kbd">/</span>
+  </form>
+  <span class="badge-host" title="LAN endpoint">192.168.219.115:5001</span>
+  <button class="iconbtn" id="theme-toggle" title="테마" aria-label="테마 전환">◐</button>
+</header>
+
+<!-- ============ SHELL ============ -->
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="side-search">
+      <form action="/search" method="get">
+        <span class="ico">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        </span>
+        <input type="text" name="q" placeholder="빠른 검색" autocomplete="off" value="{{ request.args.get('q','') if request is defined else '' }}">
+      </form>
+    </div>
+    <nav id="side-nav">
+      {% for g in groups %}
+        <div class="nav-group">
+          <div class="nav-head">
+            {% if g.icon %}<span class="ic">{{ g.icon }}</span>{% endif %}{{ g.label }}
+          </div>
+          {% for p in g.pages %}
+            <a class="nav-link{% if active_slug is defined and active_slug == p.slug %} active{% endif %}" href="{{ p.url() }}">
+              {% if p.nav.get('ic') %}<span class="ic">{{ p.nav['ic'] }}</span>{% endif %}
+              {{ p.nav.get('label', p.title) }}
+            </a>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </nav>
+    <div class="side-foot">
+      <div>Joons Wiki · v1.0</div>
+      <div>localhost · 192.168.219.115</div>
+      <div>{{ now.strftime('%Y-%m-%d %H:%M') }} KST</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="content">
+      {% block content %}{% endblock %}
+    </div>
+    <aside class="toc-rail" role="complementary">
+      {% block toc %}{% endblock %}
+    </aside>
+  </main>
+</div>
+
+<footer class="foot">
+  <span>Joons Wiki — 개인 시스템 문서 · Haee (AI TOP Atom · GB10)</span>
+  <span class="links">
+    <a href="/">홈</a>
+    <a href="/search?q=ollama">Ollama</a>
+    <a href="/search?q=profile">Profile</a>
+  </span>
+</footer>
+
+<script src="{{ url_for('static', filename='wiki.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

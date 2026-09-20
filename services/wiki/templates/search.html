@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}검색 — Joons Wiki{% endblock %}
+{% block content %}
+<div class="crumb fade-in"><a href="/">홈</a><span class="sep">›</span><span>검색</span></div>
+<h1 class="page-title fade-in" style="font-size:30px;margin-bottom:6px">
+  {% if q %}검색 결과{% else %}빠른 검색{% endif %}
+</h1>
+<p class="lead fade-in">
+  {% if q %}
+    “<b style="color:#fff">{{ q }}</b>”에 대한 <b>{{ results|length }}</b>개 결과
+  {% else %}
+    문서 전체를 검색하세요. <span style="color:var(--ink-3)">키워드, 모델명, 서비스명, port…</span>
+  {% endif %}
+</p>
+
+<div class="search-list">
+  {% for p in results %}
+  <a class="result fade-in" href="{{ p.url() }}">
+    <div class="r-k">{{ section_icon(p.section) or '§' }} · {{ section_label(p.section) }}</div>
+    <h3>{{ p.title }}</h3>
+    {% if p.summary %}<p>{{ p.summary }}</p>{% endif %}
+  </a>
+  {% else %}
+  {% if q %}
+  <div class="no-results">
+    <div class="big">…</div>
+    “{{ q }}”에 대한 결과가 없습니다.<br>
+    <span style="font-size:14px;color:var(--ink-3)">짧은 단어로 다시 시도하거나, 사이드바에서 탐색해 보세요.</span>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+
+{% if not q %}
+<div class="meta-row" style="margin-top:20px">
+  {% for kw in ['ollama','profile','discord','systemd','email','plugin','ssh','monitor','research'] %}
+  <a class="meta-chip" href="/search?q={{ kw }}">{{ kw }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

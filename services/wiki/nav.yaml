@@ -1,0 +1,108 @@
+# ============================================================
+#  Joons Wiki — navigation map
+#  order : top-level section order (sidebar)
+#  sections.<dir>.label|icon  : sidebar heading
+#  sections.<dir>.order       : reading order of pages INSIDE the section
+#  pages.<slug>.label|ic      : per-page label + icon (override title)
+# ============================================================
+
+order:
+  - system
+  - profiles
+  - ollama-monitor
+  - llama-monitor
+  - research
+  - smtp
+  - plugin
+
+sections:
+  system:
+    label: "시스템 환경 설정"
+    icon: "🖥️"
+    order:
+      - hermes-agent-backend
+      - ollama-setup
+      - ollama-multimodel
+      - llama-cpp-setup
+      - nvidia-sync
+      - gpu-clock-control
+      - ssh
+      - remote
+      - remote-desktop
+      - remote-hermes
+      - git-github
+      - hermes-serve-dashboard
+
+  profiles:
+    label: "Hermes Profile"
+    icon: "🧬"
+    order:
+      - profiles-overview
+      - coding-profile
+      - english-profile
+      - session-prompt
+      - english-prompt
+      - discord-connect
+
+  ollama-monitor:
+    label: "Ollama Status Monitor"
+    icon: "📈"
+    order:
+      - monitor
+
+  llama-monitor:
+    label: "llama.cpp Status Monitor"
+    icon: "📊"
+    order:
+      - llama-monitor
+
+  research:
+    label: "Researcher Bot"
+    icon: "🔎"
+    order:
+      - researcher
+
+  smtp:
+    label: "E-mail 발송"
+    icon: "✉️"
+    order:
+      - email
+
+  plugin:
+    label: "Desktop Plugin"
+    icon: "🔌"
+    order:
+      - profile-model-follow
+
+# ------------------------------------------------------------------
+# Per-page labels & icons (slug = <section>/<file-stem>)
+# ------------------------------------------------------------------
+pages:
+  system/hermes-agent-backend: { label: "Hermes Agent 백엔드", ic: "🚀" }
+  system/ollama-setup:         { label: "Ollama 설치", ic: "🦙" }
+  system/ollama-multimodel:    { label: "다중 모델 서빙", ic: "🧵" }
+  system/llama-cpp-setup:      { label: "llama.cpp 서버 (Ollama 전환)", ic: "⚡" }
+  system/nvidia-sync:          { label: "NVIDIA Sync", ic: "🔄" }
+  system/gpu-clock-control:    { label: "GPU Clock Control", ic: "🌡️" }
+  system/ssh:                  { label: "SSH 설정", ic: "🔐" }
+  system/remote:               { label: "원격 접속", ic: "🌐" }
+  system/remote-desktop:       { label: "원격 데스크톱", ic: "🖥️" }
+  system/remote-hermes:        { label: "원격 Hermes 접속", ic: "🧭" }
+  system/git-github:           { label: "Git / GitHub", ic: "🔗" }
+  system/hermes-serve-dashboard: { label: "serve/dashboard 분리", ic: "🖥️" }
+
+  profiles/profiles-overview:  { label: "프로파일 개요 & 검증", ic: "🧩" }
+  profiles/coding-profile:     { label: "coding 프로파일", ic: "💻" }
+  profiles/english-profile:    { label: "english 프로파일 (Sam)", ic: "🇬🇧" }
+  profiles/session-prompt:     { label: "세션 별 프롬프트", ic: "🗂️" }
+  profiles/english-prompt:     { label: "영어학습 프롬프트", ic: "📖" }
+  profiles/discord-connect:    { label: "Discord 연결", ic: "💬" }
+
+  ollama-monitor/monitor:      { label: "Ollama Status Monitor", ic: "📈" }
+  llama-monitor/llama-monitor: { label: "llama.cpp Status Monitor", ic: "📊" }
+
+  research/researcher:         { label: "Researcher Bot", ic: "🔎" }
+
+  smtp/email:                  { label: "E-mail 발송 (SMTP)", ic: "✉️" }
+
+  plugin/profile-model-follow: { label: "profile-model-follow", ic: "🔌" }

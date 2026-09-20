@@ -1,0 +1,50 @@
+# llama-monitor 설정 (ollama-monitor config.yaml과 같은 키 체계)
+# 부재 시 app.py 내장 기본값 사용. deep-merge로 부분 오버라이드 가능.
+
+host: 0.0.0.0
+port: 5002                 # ollama-monitor=5000, wiki=5001 → 5002 확정
+sample_interval_sec: 2     # 시스템(GPU/CPU/RAM/Storage) 샘플링 주기
+history_points: 1800       # 1800 * 2s = 60분 추이
+http_timeout_sec: 6        # llama-server REST (/health,/slots,/v1/models)
+gpu_cmd_timeout_sec: 6
+log_level: INFO
+log_max_bytes: 1048576     # 1MB
+log_backup_count: 3
+
+# --- per-server 추론 상태 (journal) 스캐너 -------------------------------
+live_token_poll_sec: 3     # 각 서버 journal tail 재스캔 주기
+live_token_tail_lines: 2000
+stale_threshold_sec: 8     # last_seen 이후 이보다 오래면 stale
+
+speed_test:
+  enabled: true
+  num_predict: 256
+  timeout_sec: 180
+  secret: ""               # 비우면 X-Monitor-Secret 검증 생략
+
+# --- 추적 대상 서버 (카드 순서 = 이 목록 순서) ---------------------------
+# port        : client가 쓰는 프론트 포트 (llama-server 상시 / proxy 온디맨드)
+# backend_port: 실제 llama-server 포트. monitor는 여기로 probe한다.
+#               ⚠️ 온디맨드 proxy 포트(11535~11537)는 raw TCP tunnel이라
+#                  직접 접속하면 backend를 시작해버림 → probe 금지.
+#               → monitor는 backend_port(1536~1538)로 probe,
+#                  down이면 systemctl is-active로 standby/failed 구분.
+# journal_unit: 추론 통계 파싱 대상 systemd user unit
+# mode        : resident(상시) | on-demand(idle 10분 후 stop = standby 정상)
+servers:
+  - port: 11534
+    backend_port: 11534
+    label: joons
+    mode: resident
+    journal_unit: llama-server-38
+  # 11535(coding): qwen3.6-35b-a3b Q8_0, on-demand
+  - port: 11535
+    backend_port: 1535
+    label: coding
+    mode: on-demand
+    journal_unit: llama-server-coding
+  - port: 11536
+    backend_port: 1536
+    label: english
+    mode: on-demand
+    journal_unit: llama-server-gemma

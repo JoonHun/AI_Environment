@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>llama-monitor — Status Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', system-ui, sans-serif; }
+        .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 0.75rem; padding: 1.5rem; }
+        .status-pulse { width: 10px; height: 10px; border-radius: 50%; background-color: #22c55e; display: inline-block; margin-right: 0.5rem; animation: pulse 2s infinite; }
+        .status-off { background-color: #ef4444 !important; animation: none; }
+        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
+        #servers { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
+        #servers::-webkit-scrollbar { width: 8px; }
+        #servers::-webkit-scrollbar-thumb { background: #334155; border-radius: 8px; }
+    </style>
+</head>
+<body class="p-8 h-screen overflow-hidden flex flex-col">
+    <!-- DOWN banner (hidden while up) -->
+    <div id="down-banner" class="max-w-[1600px] mx-auto mb-6 hidden">
+        <div class="bg-red-950/60 border border-red-700 rounded-lg px-4 py-3 text-red-200">
+            <span class="font-bold">⚠ llama-monitor unreachable</span>
+            <span id="down-reason" class="ml-2 text-red-300/80 text-sm"></span>
+        </div>
+    </div>
+
+    <div class="max-w-[1600px] mx-auto w-full flex-1 min-h-0 flex flex-col">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-6 shrink-0">
+            <div>
+                <h1 class="text-4xl font-bold text-white">llama-monitor</h1>
+                <p class="text-slate-400 mt-2">
+                    <span id="status-dot" class="status-pulse"></span>
+                    <span id="status-text">connected to 192.168.219.115</span>
+                    <span id="srvcount-badge" class="ml-3 text-xs bg-slate-800 border border-slate-700 rounded px-2 py-0.5 text-slate-400"></span>
+                </p>
+            </div>
+            <div class="flex items-center gap-6">
+                <!-- External fan (ESP32 report) -->
+                <div class="text-right">
+                    <p class="text-sm text-slate-500">External Fan</p>
+                    <p class="text-lg font-mono text-slate-300">
+                        <span id="fan-dot" class="inline-block w-3 h-3 rounded-full align-middle mr-2"
+                              style="background:#475569"></span>
+                        <span id="fan-rpm">--</span>
+                    </p>
+                </div>
+                <div class="w-px h-8 bg-slate-700/60"></div>
+                <div class="text-right">
+                    <p class="text-sm text-slate-500">Last Updated</p>
+                    <p class="text-lg font-mono text-blue-400">{{ app_mtime }}</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Top block (fixed, never scrolls) -->
+        <div class="shrink-0 pb-4">
+        <!-- Row 1: system cards (CPU · GPU · Memory · Storage in one row) -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <!-- CPU -->
+            <div class="card">
+                <h2 class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-4">CPU</h2>
+                <div class="mt-4 h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div id="cpu-bar" class="h-full bg-blue-400 transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="mt-5 space-y-3">
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-slate-500 text-sm">Used</span>
+                        <span id="cpu-pct" class="text-2xl font-bold text-white font-mono">--%</span>
+                    </div>
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-slate-500 text-sm">Temp</span>
+                        <span id="cpu-temp" class="text-2xl font-bold text-white font-mono">--</span>
+                    </div>
+                    <div class="flex justify-between items-baseline border-t border-slate-700/50 pt-3">
+                        <span class="text-slate-400 text-sm">Cores</span>
+                        <span id="cpu-cores" class="text-2xl font-bold text-slate-300 font-mono">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GPU -->
+            <div class="card">
+                <h2 class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-4">GPU</h2>
+                <div class="mt-4 h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div id="gpu-bar" class="h-full bg-red-400 transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="mt-5 space-y-3">
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-slate-500 text-sm">Used</span>
+                        <span id="gpu-pct" class="text-2xl font-bold text-white font-mono">--%</span>
+                    </div>
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-slate-500 text-sm">Temp</span>
+                        <span id="gpu-temp" class="text-2xl font-bold text-white font-mono">--</span>
+                    </div>
+                    <div class="flex justify-between items-baseline border-t border-slate-700/50 pt-3">
+                        <span class="text-slate-400 text-sm">Power</span>
+                        <span id="gpu-power" class="text-2xl font-bold text-slate-300 font-mono">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RAM (GB10 shared/unified memory) -->
+            <div class="card">
+                <div class="flex items-center gap-3 mb-1">
+                    <h2 class="text-slate-400 text-sm font-semibold uppercase tracking-wider">RAM</h2>
+                    <p class="text-slate-500 text-xs">shared (unified)</p>
+                </div>
+                <div class="mt-4 h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div id="ram-bar" class="h-full bg-emerald-400 transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="mt-5 space-y-3">
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-slate-500 text-sm">Used</span>
+                        <span id="ram-used" class="text-2xl font-bold text-white font-mono">--</span>
+                    </div>
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-slate-500 text-sm">Free</span>
+                        <span id="ram-free" class="text-2xl font-bold text-white font-mono">--</span>
+                    </div>
+                    <div class="flex justify-between items-baseline border-t border-slate-700/50 pt-3">
+                        <span class="text-slate-400 text-sm">Total</span>
+                        <span id="ram-total" class="text-2xl font-bold text-slate-300 font-mono">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Storage -->
+            <div class="card">
+                <h2 class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-4">Storage</h2>
+                <div class="mt-4 h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div id="storage-bar" class="h-full bg-amber-400 transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="mt-5 space-y-3">
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-slate-500 text-sm">Used</span>
+                        <span id="storage-used" class="text-2xl font-bold text-white font-mono">--</span>
+                    </div>
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-slate-500 text-sm">Free</span>
+                        <span id="storage-free" class="text-2xl font-bold text-white font-mono">--</span>
+                    </div>
+                    <div class="flex justify-between items-baseline border-t border-slate-700/50 pt-3">
+                        <span class="text-slate-400 text-sm">Total</span>
+                        <span id="storage-total" class="text-2xl font-bold text-slate-300 font-mono">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Trend chart -->
+        <div class="card">
+            <h2 class="text-xl font-bold text-white mb-4">Trend (GPU util % · RAM GB)</h2>
+            <div class="h-56"><canvas id="trend-chart"></canvas></div>
+        </div>
+        </div>
+
+        <!-- Model cards: the ONLY scrollable area (internal scroll, fills remaining height) -->
+        <div id="servers" class="grid grid-cols-1 gap-6 flex-1 min-h-0 overflow-y-auto pr-2"></div>
+
+        <p class="text-slate-500 text-sm text-center mt-6 shrink-0">llama.cpp llama-server monitor · auto-refresh 2s · port per model</p>
+    </div>
+
+    <script>
+    const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const fmt = (n, d=1) => n == null ? '--' : Number(n).toFixed(d).replace(/\.0$/,'');
+
+    let chart;
+    function initChart() {
+        const ctx = document.getElementById('trend-chart');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'CPU %',   data: [], borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.12)', yAxisID: 'y', tension: 0.25, pointRadius: 0 },
+                    { label: 'GPU %',   data: [], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.12)',  yAxisID: 'y', tension: 0.25, pointRadius: 0 },
+                    { label: 'RAM GB',  data: [], borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,0.12)', yAxisID: 'y1', tension: 0.25, pointRadius: 0 },
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, animation: false,
+                plugins: { legend: { labels: { color: '#94a3b8' } } },
+                scales: {
+                    x:  { ticks: { color: '#64748b', maxTicksLimit: 8 }, grid: { color: '#1e293b' } },
+                    y:  { position: 'left',  min: 0, max: 100, ticks: { color: '#ffffff' }, grid: { color: '#1e293b' } },
+                    y1: { position: 'right', min: 0, max: 128, ticks: { color: '#34d399' }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    function loadChart() {
+        fetch('/api/history').then(r => { if (!r.ok) return null; return r.json(); })
+            .then(items => {
+                if (!items || !items.length) return;
+                const fmtT = (t) => new Date(t * 1000).toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
+                chart.data.labels = items.map(i => fmtT(i.t));
+                chart.data.datasets[0].data = items.map(i => i.cpu || 0);
+                chart.data.datasets[1].data = items.map(i => i.util || 0);
+                chart.data.datasets[2].data = items.map(i => i.ram || 0);
+                chart.update('none');
+            }).catch(() => {});
+    }
+
+    // Stage stepper — active stage = green, others = slate (same as ollama-monitor lt-stage)
+    function stageStepper(stage) {
+        const st = stage || 'idle';
+        const cls = (name) => {
+            const base = 'px-2.5 py-1 rounded-full text-xs font-bold ';
+            return base + (st === name ? 'bg-green-500/20 text-green-300' : 'bg-slate-800 text-slate-400');
+        };
+        return `<div class="flex gap-1.5">
+            <span class="${cls('idle')}">Idle</span>
+            <span class="${cls('prefill')}">Prefill</span>
+            <span class="${cls('decode')}">Decode</span>
+        </div>`;
+    }
+
+    function serverCard(s) {
+        // model name only (path is meaningless) — file basename
+        const modelName = s.model ? s.model.split('/').pop()
+                                  : (s.up ? '(model ?)' : '— model not loaded (standby) —');
+        // mode label with initial capital: resident → Resident, on-demand → On-demand
+        const modeLabel = s.mode ? s.mode.charAt(0).toUpperCase() + s.mode.slice(1) : '';
+        // State badge — ALWAYS shown: gray by default, RED when busy.
+        const stateTxt = s.status === 'busy' ? 'BUSY' : (s.status === 'idle' ? 'IDLE' : s.status.toUpperCase());
+        const stateBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold ${
+            s.status === 'busy'
+                ? 'bg-red-500/20 text-red-300'
+                : 'bg-slate-800 text-slate-500'
+        }">${stateTxt}</span>`;
+        // When the model is NOT loaded (standby/down/degraded) hide stale stats + last-request
+        // so an unloaded card doesn't show old Prefill/Decode/MTP values.
+        const showStats = s.status !== 'standby' && s.status !== 'down' && s.status !== 'degraded';
+
+        // ── model meta: file size (tight) + ctx (wide gap) ──
+        let sizeHtml = '';
+        let ctxHtml = '';
+        if (s.file_gb != null) sizeHtml = ` <span class="text-lg font-mono font-bold text-slate-400">(${s.file_gb}GB)</span>`;
+        if (s.ctx_tokens) {
+            const ctxTotalK = Math.round(s.ctx_tokens / 1024);
+            const ctxUsed   = s.ctx_used_tokens || 0;
+            const ctxUsedK  = Math.round(ctxUsed / 1024);
+            const ctxPct    = Math.round((ctxUsed / s.ctx_tokens) * 100);
+            ctxHtml = `<span class="text-lg font-mono font-bold text-white ml-8 whitespace-nowrap">ctx : ${ctxUsedK}k/${ctxTotalK}k (${ctxPct}%)</span>`;
+        }
+
+        let statsHtml = '';
+
+        // Live gen stats (4-column: Prefill · Decode · 3s · Generated)
+        if (showStats && (s.tokens > 0 || s.prompt_tps != null || s.tps != null)) {
+            statsHtml += `<div class="grid grid-cols-4 gap-3 text-center">
+                <div>
+                    <p class="text-slate-500 text-xs uppercase tracking-wider">Prefill</p>
+                    <div class="my-1 flex items-baseline justify-center gap-1.5">
+                        <p class="text-3xl font-mono font-bold text-white">${fmt(s.prompt_tps, 1)}</p>
+                        <span class="text-sm text-slate-400 font-mono">t/s</span>
+                    </div>
+                    <p class="text-slate-500 text-xs">prompt</p>
+                </div>
+                <div>
+                    <p class="text-slate-500 text-xs uppercase tracking-wider">Decode</p>
+                    <div class="my-1 flex items-baseline justify-center gap-1.5">
+                        <p class="text-3xl font-mono font-bold text-white">${fmt(s.tps, 1)}</p>
+                        <span class="text-sm text-slate-400 font-mono">t/s</span>
+                    </div>
+                    <p class="text-slate-500 text-xs">avg</p>
+                </div>
+                <div>
+                    <p class="text-slate-500 text-xs uppercase tracking-wider">3s</p>
+                    <div class="my-1 flex items-baseline justify-center gap-1.5">
+                        <p class="text-3xl font-mono font-bold text-white">${fmt(s.tps_3s, 1)}</p>
+                        <span class="text-sm text-slate-400 font-mono">t/s</span>
+                    </div>
+                    <p class="text-slate-500 text-xs">3s avg</p>
+                </div>
+                <div>
+                    <p class="text-slate-500 text-xs uppercase tracking-wider">Generated</p>
+                    <div class="my-1 flex items-baseline justify-center gap-1.5">
+                        <p class="text-3xl font-mono font-bold text-white">${(s.tokens || 0).toLocaleString()}</p>
+                    </div>
+                    <p class="text-slate-500 text-xs">tok</p>
+                </div>
+            </div>`;
+        }
+
+        // Last request + MTP (one line: last left · mtp right)
+        if (showStats && (s.final_tokens != null || s.mtp_accept != null)) {
+            const leftParts = [];
+            if (s.prompt_tokens != null) leftParts.push(`prompt ${s.prompt_tokens} tok`);
+            if (s.final_tps != null)     leftParts.push(`${fmt(s.final_tps, 1)} t/s`);
+            if (s.final_tokens != null)  leftParts.push(`${s.final_tokens} tok`);
+            const leftHtml  = leftParts.length
+                ? `<span class="text-slate-500">last request: <span class="font-mono text-slate-300">${leftParts.join(' · ')}</span></span>` : '';
+            const rightHtml = (s.mtp_accept != null)
+                ? `<span class="text-slate-400">MTP <span class="text-white font-mono">${fmt(s.mtp_accept * 100, 1)}%</span> · mean/step <span class="text-white font-mono">${fmt(s.mtp_mean_len, 2)}</span></span>` : '';
+            statsHtml += `<div class="flex justify-between items-center gap-2 text-sm border-t border-slate-700/50 pt-3 mt-3">${leftHtml}${rightHtml}</div>`;
+        }
+
+        // Last log update — always shown (date + time, "T" removed)
+        let warnHtml = '';
+        if (s.last_seen) {
+            const ts = String(s.last_seen).replace('T', ' ').slice(0, 19);
+            warnHtml += `<div class="mt-3 text-xs text-slate-500 font-mono">${escapeHtml(ts)}</div>`;
+        }
+        if (s.hang) {
+            warnHtml += `<div class="text-sm text-red-400 font-semibold">⚠ hang — no log progress for 8s+ during decode</div>`;
+        }
+        // err line — never for standby (backend off is normal there, not an error)
+        if (s.error && s.status !== 'standby') {
+            warnHtml += `<div class="text-xs text-red-400">err: ${escapeHtml(s.error)}</div>`;
+        }
+
+        return `<div class="card">
+            <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="text-xl font-bold text-white font-mono">${escapeHtml(s.port)}</span>
+                    ${stateBadge}
+                    <span class="text-slate-400 text-sm">${escapeHtml(modeLabel)}</span>
+                    <span class="text-white text-lg font-bold font-mono truncate max-w-[480px]" title="${escapeHtml(s.model || '')}">${escapeHtml(modelName)}${sizeHtml}</span>
+                    ${ctxHtml}
+                </div>
+                ${stageStepper(s.stage)}
+            </div>
+            <div class="mt-4">${statsHtml || '<p class="text-slate-500 text-sm">—</p>'}</div>
+            ${warnHtml}
+        </div>`;
+    }
+
+    async function updateDashboard() {
+        try {
+            // Health + header
+            const h = await (await fetch('/api/health')).json();
+            const up = h.status === 'ok';
+            const dot    = document.getElementById('status-dot');
+            const stxt   = document.getElementById('status-text');
+            const banner = document.getElementById('down-banner');
+
+            banner.classList.toggle('hidden', up);
+            if (!up) {
+                dot.classList.add('status-off');
+                stxt.textContent = 'llama-monitor unreachable';
+                document.getElementById('down-reason').textContent = h.error || 'unknown';
+            } else {
+                dot.classList.remove('status-off');
+                stxt.textContent = 'connected to 192.168.219.115';
+            }
+            document.getElementById('srvcount-badge').textContent = `${h.servers_up}/${h.servers_total} servers up`;
+
+            // System cards
+            const s = await (await fetch('/api/status')).json();
+            if (s && !s.error) {
+                const cpu  = s.cpu || {};
+                const gpu  = s.gpu || {};
+                const ram  = gpu.ram || {};
+                // Pick the root mount ('/') for the Storage card; fall back to the largest mount.
+                // (storage[0] can be a tiny /boot/efi entry — do NOT assume index 0 is the main disk.)
+                const stList = s.storage || [];
+                const stor = stList.find(x => x.mount === '/')
+                    || stList.reduce((a, b) => ((b.total_gb || 0) > (a.total_gb || 0) ? b : a), {});
+
+                // CPU
+                const cpuPct = cpu.util_pct;
+                document.getElementById('cpu-pct').textContent   = cpuPct != null ? Math.round(cpuPct) + '%' : '--%';
+                document.getElementById('cpu-bar').style.width   = (cpuPct || 0) + '%';
+                document.getElementById('cpu-temp').textContent  = cpu.temp_c != null ? cpu.temp_c.toFixed(1) + '°C' : '--';
+                document.getElementById('cpu-cores').textContent = cpu.cores || '--';
+
+                // GPU
+                const gpuPct = gpu.util_pct;
+                document.getElementById('gpu-pct').textContent   = gpuPct != null ? Math.round(gpuPct) + '%' : '--%';
+                document.getElementById('gpu-bar').style.width   = (gpuPct || 0) + '%';
+                document.getElementById('gpu-temp').textContent  = gpu.temp_c != null ? gpu.temp_c.toFixed(1) + '°C' : '--';
+                document.getElementById('gpu-power').textContent = gpu.power_w != null ? gpu.power_w.toFixed(0) + ' W' : '--';
+
+                // RAM
+                const ramUsed  = ram.used_gb;
+                const ramFree  = ram.available_gb;
+                const ramTotal = ram.total_gb;
+                document.getElementById('ram-used').textContent  = ramUsed  != null ? ramUsed.toFixed(2)  + ' GB' : '--';
+                document.getElementById('ram-free').textContent  = ramFree  != null ? ramFree.toFixed(2)  + ' GB' : '--';
+                document.getElementById('ram-total').textContent = ramTotal != null ? ramTotal.toFixed(2) + ' GB' : '--';
+                document.getElementById('ram-bar').style.width   = (ramUsed != null && ramTotal) ? Math.min(100, Math.max(0, 100 * ramUsed / ramTotal)) + '%' : '0%';
+
+                // Storage
+                const stUsed  = stor.used_gb;
+                const stTotal = stor.total_gb;
+                const stFree  = (stUsed != null && stTotal != null) ? stTotal - stUsed : null;
+                document.getElementById('storage-used').textContent  = stUsed  != null ? stUsed.toFixed(2)  + ' GB' : '--';
+                document.getElementById('storage-free').textContent  = stFree  != null ? stFree.toFixed(2)  + ' GB' : '--';
+                document.getElementById('storage-total').textContent = stTotal != null ? stTotal.toFixed(2) + ' GB' : '--';
+                document.getElementById('storage-bar').style.width   = (stUsed != null && stTotal) ? Math.min(100, Math.max(0, 100 * stUsed / stTotal)) + '%' : '0%';
+            }
+        } catch (e) {
+            console.error('status update failed', e);
+            document.getElementById('status-text').textContent = 'dashboard fetch failed';
+            document.getElementById('status-dot').classList.add('status-off');
+        }
+
+        // Server cards
+        try {
+            const data = await (await fetch('/api/servers')).json();
+            const list = data.servers || (Array.isArray(data) ? data : []);
+            const el = document.getElementById('servers');
+            el.innerHTML = list.length
+                ? list.map(serverCard).join('')
+                : '<div class="card col-span-full"><p class="text-slate-500">sampling servers… (wait 3s)</p></div>';
+        } catch (e) { /* ignore */ }
+    }
+
+    async function updateFan() {
+        try {
+            const f = await (await fetch('/api/external-fan')).json();
+            const dot = document.getElementById('fan-dot');
+            const rpmEl = document.getElementById('fan-rpm');
+            if (f.online && f.led_rgb && f.led_rgb.length === 3) {
+                const [r, g, b] = f.led_rgb;
+                dot.style.background = `rgb(${r},${g},${b})`;
+                dot.style.boxShadow = `0 0 8px rgba(${r},${g},${b},0.7)`;
+            } else {
+                dot.style.background = '#475569';
+                dot.style.boxShadow = 'none';
+            }
+            rpmEl.textContent = (f.fan_rpm != null) ? `${f.fan_rpm} RPM` : '--';
+        } catch (e) { /* fan endpoint down — keep last display */ }
+    }
+
+    initChart();
+    updateDashboard();
+    loadChart();
+    setInterval(updateDashboard, 2000);
+    setInterval(updateFan, 2000);
+    setInterval(loadChart, 15000);
+    </script>
+</body>
+</html>

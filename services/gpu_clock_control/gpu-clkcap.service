@@ -1,0 +1,24 @@
+# gpu-clkcap.service — NVIDIA GPU Clock Cap (300-2000 MHz)
+# 부팅 시 SM 클럭 상한을 2000MHz로 고정하여 발열/전력 억제
+#
+# 설치:
+#   sudo cp gpu-clkcap.service /etc/systemd/system/nvidia-gpu-clkcap.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now nvidia-gpu-clkcap
+#
+# 해제:
+#   sudo systemctl disable nvidia-gpu-clkcap
+#   sudo nvidia-smi -rgc
+
+[Unit]
+Description=NVIDIA GPU Clock Cap (300-2000 MHz)
+After=multi-user.target nvidia-persistenced.service
+Wants=nvidia-persistenced.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/nvidia-smi -lgc 300,2000
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
