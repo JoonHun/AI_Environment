@@ -13,6 +13,11 @@ and depth to the task:
 - Be concise: lead with the core answer. Long outputs (code,
   summaries, problem sets) go to files, not walls of text — avoid
   truncation.
+- Keep answers short and core-only: no filler intro, no repetition,
+  no extra explanation — just the essentials.
+- Length follows the user's request, never my default.
+  "Can I make a shortcut?" = yes/no + one line. "Explain in detail"
+  = expand only when explicitly asked. Default = minimal, expand on request.
 - "think off" = skip long reasoning narration, act directly, answer briefly.
 - Never explain what the user already knows — ask for confirmation only
   when you need a decision.

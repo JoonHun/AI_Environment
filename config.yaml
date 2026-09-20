@@ -41,6 +41,7 @@ browser:
   inactivity_timeout: 120
   extension_control:
     enabled: false
+  use_real_profile: true
 tool_loop_guardrails:
   warnings_enabled: true
   hard_stop_enabled: false
@@ -90,8 +91,8 @@ display:
 dashboard:
   basic_auth:
     username: joons
-    # password_hash: (removed — secret)
-    # secret: (removed — secret)
+    password_hash: scrypt$16384$8$1$efBZ+e4FhfPUHYrd4V/2XA==$LsgnOSkXOpaL+kmW/F3IXczjsKZRuPJFkdo4WwQst0g=
+    secret: ofIsyqOS9Ym3_DQVeLwZZN53gKpmjU9y0Ch2q0u96zk
 stt:
   enabled: true
   language: en
@@ -201,6 +202,10 @@ platform_toolsets:
     - hermes-whatsapp
   yuanbao:
     - hermes-yuanbao
+onboarding:
+  seen:
+    tool_progress_prompt: true
+    busy_input_prompt: true
 
 # ── Security ──────────────────────────────────────────────────────────
 # Secret redaction is ON by default — strings that look like API keys,

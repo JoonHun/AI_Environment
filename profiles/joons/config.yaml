@@ -49,6 +49,8 @@ platforms:
     channels:
       - '1542009729327435776'
 agent: {}
+browser:
+  use_real_profile: true
 
 # ── Security ──────────────────────────────────────────────────────────
 # Secret redaction is ON by default — strings that look like API keys,
@@ -87,3 +89,5 @@ agent: {}
 # fallback_model:
 #   provider: openrouter
 #   model: anthropic/claude-sonnet-4
+
+
