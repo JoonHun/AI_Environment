@@ -32,11 +32,14 @@ speed_test:
 # journal_unit: 추론 통계 파싱 대상 systemd user unit
 # mode        : resident(상시) | on-demand(idle 10분 후 stop = standby 정상)
 servers:
+  # 11534(joons): qwen3.8-27b-mtp Q4_K_M, on-demand
+  # ⚠️ backend_port는 프론트(11534)여야 한다. 백엔드(1534)로 하면
+  #    llama-monitor probe가 llama-server를 깨워서 idle stop 무력화.
   - port: 11534
     backend_port: 11534
     label: joons
-    mode: resident
-    journal_unit: llama-server-38
+    mode: on-demand
+    journal_unit: llama-server-34
   # 11535(coding): qwen3.6-35b-a3b Q8_0, on-demand
   - port: 11535
     backend_port: 1535

@@ -62,6 +62,15 @@ systemd 유닛: `~/.config/systemd/user/`
 - `llama-proxy-{36,38q8,gemma}.service` — 상시 프록시 (`Restart=always`)
 - `llama-server-36.socket` — **무효** (disabled, 아래 §5)
 
+> 💡 **on-demand의 실용 가치:** 128GB 통합메모리에서 **용량이 큰 모델(40B+, 70B+ 등)을 임시로 올려 테스트**할 수 있다.
+> 테스트 끝나면 `↓ Unload` 버튼 또는 watchdog이 자동 해제 → 메모리 즉시 회수.
+> 상시 모델(11534)과 **동시 추론 시 대역폭 경쟁**만 유의하면, 128GB가 허락하는 한 어떤 모델이라도 올려볼 수 있다.
+>
+> 💡 **on-demand 관리:** proxy watchdog(300s idle) + `↓ Unload` 버튼(즉시) + 재로딩(proxy 자동 start).
+> llama-monitor 대시보드(5002)에서 실시간 확인 + Force Unload 가능. 상세: [llama.cpp Status Monitor](/p/llama-monitor/llama-monitor)
+> ⚠️ **monitor probe 함정:** config.yaml의 `backend_port`는 **프론트(1153x)여야** 한다.
+> 백엔드(153x)로 하면 monitor probe가 모델을 깨워서 idle stop이 무력화된다.
+
 ## 5. 소켓 활성화 실패 → 프록시 전환 (핵심)
 
 **시도:** systemd 소켓 활성화(`.socket` + `IdleTimeoutSec`)로 "요청 시 기동, 유휴 시 종료".

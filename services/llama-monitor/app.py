@@ -497,7 +497,15 @@ def sample_server_http(srv: dict) -> dict:
     try:
         r = requests.get(base + "/health", timeout=HTTP_TO)
         if r.status_code == 200:
-            out["up"] = True
+            # proxy may return 200 with {"status":"standby"} — treat as down
+            try:
+                body = r.json()
+            except Exception:
+                body = {}
+            if isinstance(body, dict) and body.get("status") == "standby":
+                out["up"] = False  # proxy is up but backend is not
+            else:
+                out["up"] = True
     except Exception as e:  # noqa: BLE001
         out["error"] = f"health: {e.__class__.__name__}"
 
@@ -864,6 +872,23 @@ def ext_fan():
         "last_epoch": snap["last_epoch"],
         "online": (time.time() - snap["last_epoch"]) < 30,
     })
+
+
+@app.route("/api/unload", methods=["POST"])
+def unload():
+    """Forcibly stop the llama-server backend for a given port."""
+    payload = request.get_json(silent=True) or {}
+    port = payload.get("port")
+    srv = next((s for s in CFG["servers"] if s["port"] == port), None)
+    if not srv:
+        return jsonify({"error": f"port {port} not configured"}), 404
+    unit = srv.get("journal_unit", "")
+    if not unit:
+        return jsonify({"error": "no journal_unit"}), 400
+    code, out = sub(["systemctl", "--user", "stop", unit], timeout=10)
+    if code == 0:
+        return jsonify({"status": "ok", "port": port, "unit": unit, "action": "stopped"})
+    return jsonify({"error": out}), 500
 
 
 @app.route("/api/speed-test", methods=["POST"])

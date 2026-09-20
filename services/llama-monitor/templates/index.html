@@ -326,9 +326,33 @@
                 </div>
                 ${stageStepper(s.stage)}
             </div>
+            <div class="mt-1 mb-2">
+                <button onclick="forceUnload(${s.port}, this)" class="text-xs font-bold transition-colors ${
+                    s.status !== 'standby' && s.status !== 'down' && s.status !== 'degraded'
+                        ? 'text-red-400 hover:text-red-300'
+                        : 'text-slate-600'
+                }">↓ Unload</button>
+            </div>
             <div class="mt-4">${statsHtml || '<p class="text-slate-500 text-sm">—</p>'}</div>
             ${warnHtml}
         </div>`;
+    }
+
+    async function forceUnload(port, btn) {
+        btn.textContent = '...'; btn.disabled = true;
+        try {
+            const r = await fetch('/api/unload', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({port: port})
+            });
+            const j = await r.json();
+            btn.textContent = j.status === 'ok' ? '✓ unloaded' : '✗ failed';
+            setTimeout(() => { btn.textContent = '↓ Unload'; btn.disabled = false; }, 3000);
+        } catch(e) {
+            btn.textContent = '✗ failed';
+            setTimeout(() => { btn.textContent = '↓ Unload'; btn.disabled = false; }, 3000);
+        }
     }
 
     async function updateDashboard() {
