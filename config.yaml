@@ -6,7 +6,6 @@ model:
 providers:
   llama:
     base_url: http://192.168.219.115:11534/v1
-    default_model: /home/joons/models/qwen3.8-27b-mtp-q4_k_m.gguf
     discover_models: true
     model: /home/joons/models/qwen3.8-27b-mtp-q4_k_m.gguf
     models:
@@ -31,9 +30,6 @@ terminal:
   cwd: .
   timeout: 180
   home_mode: auto
-  container_cpu: 1
-  container_memory: 5120
-  container_disk: 51200
   container_persistent: true
   docker_mount_cwd_to_workspace: false
   lifetime_seconds: 300
@@ -88,19 +84,13 @@ display:
   cleanup_progress: false
   long_running_notifications: true
   tool_progress: all
+  in_app_tips: false
+  in_app_tours: false
 dashboard:
   basic_auth:
     username: joons
     password_hash: scrypt$16384$8$1$efBZ+e4FhfPUHYrd4V/2XA==$LsgnOSkXOpaL+kmW/F3IXczjsKZRuPJFkdo4WwQst0g=
     secret: ofIsyqOS9Ym3_DQVeLwZZN53gKpmjU9y0Ch2q0u96zk
-stt:
-  enabled: true
-  language: en
-  local:
-    model: base
-  openai:
-    model: whisper-1
-    language: ''
 memory:
   memory_enabled: true
   user_profile_enabled: true
@@ -168,40 +158,13 @@ updates:
   pre_update_backup: false
   backup_keep: 5
   non_interactive_local_changes: stash
-_config_version: 45
-custom_providers:
-  - base_url: https://localhost:11434/v1
-    name: Local (localhost:11434)
-  - base_url: http://127.0.0.1:37017/v1
-    name: Local (127.0.0.1:37017)
-  - base_url: http://localhost:9119/v1
-    name: Local (localhost:9119)
-  - base_url: http://localhost:8080/v1
-    name: Local (localhost:8080)
+_config_version: 46
 group_sessions_per_user: true
 platform_toolsets:
   cli:
     - hermes-cli
   discord:
     - hermes-discord
-  google_chat:
-    - hermes-google_chat
-  homeassistant:
-    - hermes-homeassistant
-  qqbot:
-    - hermes-qqbot
-  signal:
-    - hermes-signal
-  slack:
-    - hermes-slack
-  teams:
-    - hermes-teams
-  telegram:
-    - hermes-telegram
-  whatsapp:
-    - hermes-whatsapp
-  yuanbao:
-    - hermes-yuanbao
 onboarding:
   seen:
     tool_progress_prompt: true
@@ -244,3 +207,5 @@ onboarding:
 # fallback_model:
 #   provider: openrouter
 #   model: anthropic/claude-sonnet-4
+approvals:
+  mode: manual

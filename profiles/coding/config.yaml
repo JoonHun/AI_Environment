@@ -1,6 +1,6 @@
 model:
   provider: custom
-  default: qwen3.6-35b-a3b-mtp-q8_0
+  default: gpt-oss-120b-mxfp4
   base_url: http://localhost:11535/v1
 approvals:
   destructive_slash_confirm: false
@@ -13,7 +13,8 @@ gateway:
 onboarding:
   seen:
     busy_input_prompt: true
-_config_version: 45
+    profile_build_offered: true
+_config_version: 46
 ide_environment:
   - VS code
   - PC application

@@ -9,3 +9,5 @@ Korean user prefers clear conceptual structures, text-based diagrams, and checkl
 Arch: Dual Hermes Gateways for Discord routing — `--profile coding --port 8601` (qwen3.6) + `--profile english --port 8602` (gemma4), each mapped to specific channels. Ollama on GB10 set with `OLLAMA_MAX_LOADED_MODELS=3` for dual-model concurrent loading via 128GB unified memory.
 §
 작업 경계: 지시 한계에서 멈춤을 명확히 요구함(예: “그 다음 진행하지마”). 범위 넘어선 자동 진행 싫어함 → 명시적 승인 전 다음 단계 개시 금지.
+§
+User prefers Korean language, concise short replies, avoids long responses, likes step‑by‑step guidance with planning before coding, expects follow‑up question, wants minimal token usage, and requests core summaries only.

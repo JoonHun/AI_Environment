@@ -96,3 +96,35 @@ skills/.curator_state
 skills/.bundled_manifest
 platforms/
 pairing/
+# runtime tools / installs (binary blobs, self-managed)
+installs/
+tools/
+lsp/
+profiles/*/lsp/
+plugin-data/
+profiles/*/plugin-data/
+profiles/*/plugin-update-checks/
+# state / temp
+state-snapshots/
+profiles/*/state-snapshots/
+source-checks/
+profiles/*/source-checks/
+profiles/joins/.processes_*.tmp
+profiles/*/.processes_*.tmp
+tui-theme-boot.json
+# media artifacts / binaries
+*.wav
+*.mp3
+*.gp4
+*.zip
+profiles/joins/attachments/
+profiles/coding/attachments/
+# generated outputs
+services/music_score/pdf2tab/
+services/music_score/*.json
+services/scrp_pdf/work/
+services/scrp_pdf/out/
+# state / flags
+.clean_shutdown
+profiles/*/skills/.usage.json
+profiles/*/skills/.curator_state

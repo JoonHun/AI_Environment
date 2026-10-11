@@ -42,6 +42,12 @@ from waitress import serve
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Keep flags: one file per front port (~/llama-proxy/keep/<port>). Written by
+# the /api/keep endpoint, read by each proxy's idle watchdog (file present →
+# suppress idle unload). File-based so the intent survives restarts and no
+# restart of proxy/monitor is needed for a toggle.
+KEEP_DIR = os.path.expanduser("~/llama-proxy/keep")
+
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
@@ -68,7 +74,7 @@ DEFAULTS = {
     "servers": [
         # Fallback: the resident Qwen3.8 server (verified live on 11534).
         {"port": 11534, "backend_port": 11534, "label": "joons",
-         "mode": "resident", "journal_unit": "llama-server-38"},
+         "mode": "resident", "journal_unit": "llama-server-34"},
     ],
 }
 
@@ -679,6 +685,8 @@ def build_server_sample(srv: dict) -> dict:
         "active": bool(http.get("active")) or (bool(inf.get("active")) and http["up"]),
         "stale": stale,
         "hang": hang,
+        # Keep flag (file present → proxy watchdog won't idle-unload this model)
+        "keep": os.path.exists(os.path.join(KEEP_DIR, str(srv["port"]))),
         # error: a standby (on-demand, backend stopped) probe failure is EXPECTED,
         # not an error — suppress it so standby cards don't show a red error line.
         "error": None if status == "standby" else http["error"],
@@ -889,6 +897,36 @@ def unload():
     if code == 0:
         return jsonify({"status": "ok", "port": port, "unit": unit, "action": "stopped"})
     return jsonify({"error": out}), 500
+
+
+@app.route("/api/keep", methods=["POST"])
+def keep_toggle():
+    """Toggle the Keep flag for a server (default: (C) — no side effects).
+
+    ON  → create ~/llama-proxy/keep/<port>: the proxy's idle watchdog skips
+          unload, so the model stays in memory past the idle timeout.
+    OFF → remove the flag: normal idle-unload behavior returns.
+    Does NOT load or unload the model itself in either direction.
+    """
+    payload = request.get_json(silent=True) or {}
+    port = payload.get("port")
+    srv = next((s for s in CFG["servers"] if s["port"] == port), None)
+    if not srv:
+        return jsonify({"error": f"port {port} not configured"}), 404
+    f = os.path.join(KEEP_DIR, str(port))
+    try:
+        if os.path.exists(f):
+            os.remove(f)
+            kept = False
+        else:
+            os.makedirs(KEEP_DIR, exist_ok=True)
+            with open(f, "w") as fh:
+                fh.write(time.strftime("%Y-%m-%d %H:%M:%S"))
+            kept = True
+    except OSError as e:
+        return jsonify({"error": str(e)}), 500
+    _log.info("keep toggled for port %s → %s", port, "ON" if kept else "OFF")
+    return jsonify({"status": "ok", "port": port, "keep": kept})
 
 
 @app.route("/api/speed-test", methods=["POST"])

@@ -76,6 +76,8 @@ per server:
 | `GET /api/status` | 시스템 메트릭 (CPU/GPU/RAM/Storage) |
 | `GET /api/servers` | **서버 목록** — 각 서버 상태+모델+토큰 (카드 1차 소스) |
 | `GET /api/history` | 시스템 추이 (링 버퍼, ≤240점) |
+| `POST /api/unload` | `{"port"}` — 해당 포트 백엔드 즉시 stop (§10) |
+| `POST /api/keep` | `{"port"}` — Keep 플래그 토글 (§11) |
 
 ## 6. `config.yaml` (서버 목록)
 
@@ -212,7 +214,64 @@ curl -X POST http://127.0.0.1:5002/api/unload \
 >
 > **monitor probe는 프론트(1153x)로만** — 백엔드(153x) probe 금지 (§9 함정).
 
-## 11. 관련 문서
+## 11. Keep 버튼 — idle unload 억제 (2026-09-27)
+
+**동기:** 코딩 작업 중 300초 idle watchdog이 모델을 내려줘서 재로딩(수십 초)이 반복됨.
+사용자가 "이 모델은 내리지 마"라는 **명시적 의도**를 UI에서 전달하고 싶음.
+
+**방식: per-port Keep 플래그 파일** (`~/llama-proxy/keep/<front_port>`)
+
+```
+사용자 ──[Keep]──▶ llama-monitor ──쓰기──▶ ~/llama-proxy/keep/11535
+                                        │
+proxy35 watchdog (5s 주기) ◀────────────┘
+  "idle 300초 지났네?" → keep 파일 존재?
+     ├─ O → unload 스킵 (메모리 상주 유지)
+     └─ X → 기존처럼 systemctl stop
+```
+
+> **왜 11534의 "상주" 방식을 그대로 쓰지 않았나?**
+> 11534의 예전 방식은 proxy에 watchdog 코드가 없는 상주 build였음 →
+> 동적 토글(Keep ON/OFF)을 하려면 proxy 재시작이 필요.
+> 플래그 파일은 **매 5초 확인 → 토글 즉시 효과, 재시작 불필요**,
+> 파일이라 모니터/프록시 재시작·재부팅에도 의도 유지.
+
+**버튼:** 각 카드의 `↓ Unload` 옆에 `○ Keep`
+
+| 상태 | 표시 | 의미 |
+|---|---|---|
+| OFF (기본) | `○ Keep` 회색 (`text-slate-500`) | 기존 동작 — 300초 idle 후 unload |
+| ON | `✓ Keep` 초록 (`text-green-400`) | idle watchdog이 unload 스킵 → 상주 유지 |
+
+**의도 (C) — 부가 동작 없음:**
+- ON 시: 플래그 파일 **생성만**. standby인 모델은 로딩 안 함 (다음 요청 시 로딩 후 상주).
+- OFF 시: 플래그 **삭제만**. 이미 로딩된 모델은 그 자리에서 300초 idle 후 정상 unload.
+- 즉 Keep은 "타임아웃 면제"일 뿐, 로드/언로드를 직접 하지 않음.
+
+**구현:**
+- `proxy34~37.py`: `keep_active()` = `os.path.exists(keep/<FRONT port>)`, watchdog idle 분기에서 체크
+- `app.py`: `POST /api/keep` (파일 생성/삭제), server sample에 `keep` 필드 추가
+- `index.html`: `toggleKeep(port, btn)` — 즉시 색상 갱신 + 3초 폴링(`/api/servers`)이 조정
+
+**API:**
+```bash
+curl -X POST http://127.0.0.1:5002/api/keep -H 'Content-Type: application/json' -d '{"port": 11535}'
+# → {"keep": true,  "port": 11535, "status": "ok"}  (파일 생성 = ON)
+# → {"keep": false, "port": 11535, "status": "ok"}  (파일 삭제 = OFF)
+# 미등록 포트 → 404
+```
+
+> ⚠️ **Unload 버튼과 Keep의 관계:** Keep ON 상태에서 `↓ Unload` 클릭은
+> watchdog 억제와 무관하게 **즉시 stop**된다 (수동 = 항상 우선).
+> unload 후 Keep은 여전히 ON → 다음 요청 로딩 시 다시 상주 유지.
+> "완전 해제"하려면 Keep OFF까지.
+
+> 💡 **참고 (2026-09-27):** 11534는 온디맨드화됨 (proxy34에도 300초 watchdog).
+> 4개 포트 전부 동일 구조 → Keep은 4개 카드 모두 동일하게 동작.
+
+**E2E 검증 (2026-09-27):** 11535 Keep ON → 모델 로딩 → 6분 idle 대기(>300초) → backend active 유지 확인.
+
+## 12. 관련 문서
 
 - [Ollama Status Monitor](/p/ollama-monitor/monitor)
 - [llama.cpp 서버 (Ollama 전환)](/p/system/llama-cpp-setup)

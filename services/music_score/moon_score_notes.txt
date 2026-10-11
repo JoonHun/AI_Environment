@@ -1,0 +1,102 @@
+m01 | T: G5.half G5.eighth E5.eighth D5.eighth C5.eighth
+     | B: C3.eighth G3.eighth C4.eighth D4.eighth E4.half
+m02 | T: E5.half reighth A4.eighth C5.eighth E5.eighth
+     | B: A2.eighth E3.eighth A3.eighth C4.eighth E4.half
+m03 | T: A5.half A5.eighth F5.eighth D5.eighth C5.eighth
+     | B: F2.eighth C3.eighth F3.eighth G3.eighth A3.half
+m04 | T: B4.quarter1 A4.eighth G4.quarter reighth G4.eighth
+     | B: G2.eighth D3.eighth G3.eighth A3.eighth B3.half
+m05 | T: C5.quarter1 E5.eighth G5.quarter1 C5.eighth
+     | B: C3.eighth G3.eighth C4.eighth G3.eighth E4.eighth G3.eighth C3.eighth D3.eighth
+m06 | T: B4.quarter1 E5.eighth G5.quarter reighth G5.eighth
+     | B: E3.eighth B3.eighth E4.eighth B3.eighth G4.eighth B3.eighth E4.eighth B3.eighth
+m07 | T: A5.quarter1 B5.eighth C6.quarter1 A5.eighth
+     | B: F3.eighth C4.eighth F4.eighth C4.eighth A4.eighth C4.eighth F4.eighth C4.eighth
+m08 | T: G5.half1 E5.eighth D5.eighth
+     | B: C3.eighth G3.eighth C4.eighth G3.eighth E4.eighth G3.eighth B2.eighth G3.eighth
+m09 | T: C5.quarter1 C5.eighth C5.quarter E5.eighth D5.eighth
+     | B: A2.eighth E3.eighth A3.eighth E3.eighth C4.eighth E4.eighth G2.eighth E3.eighth
+m10 | T: C5.quarter1 C5.eighth C5.quarter D5.eighth E5.eighth
+     | B: F2.eighth C3.eighth F3.eighth C3.eighth A3.eighth C3.eighth F3.eighth C3.eighth
+m11 | T: D5.quarter1 C5.eighth A4.quarter D5.eighth E5.eighth
+     | B: D3.eighth A3.eighth D4.eighth A3.eighth F#4.eighth A3.eighth D4.eighth A3.eighth
+m12 | T: D5.half1 reighth G4.eighth
+     | B: G2.eighth D3.eighth G3.eighth B3.eighth B3.half
+m13 | T: C5.quarter1 E5.eighth G5.quarter1 C5.eighth
+     | B: C3.eighth G3.eighth C4.eighth G3.eighth E4.eighth G3.eighth C3.eighth D3.eighth
+m14 | T: B4.quarter1 E5.eighth G5.quarter reighth G5.eighth
+     | B: E3.eighth B3.eighth E4.eighth B3.eighth G4.eighth B3.eighth E4.eighth B3.eighth
+m15 | T: A5.quarter1 B5.eighth C6.quarter1 A5.eighth
+     | B: F3.eighth C4.eighth F4.eighth C4.eighth A4.eighth C4.eighth F4.eighth C4.eighth
+m16 | T: G5.half1 E5.eighth D5.eighth
+     | B: C3.eighth G3.eighth C4.eighth G3.eighth E4.eighth G3.eighth B2.eighth G3.eighth
+m17 | T: C5.quarter1 C5.eighth C5.quarter E5.eighth D5.eighth
+     | B: A2.eighth E3.eighth A3.eighth E3.eighth C4.eighth E4.eighth G2.eighth E3.eighth
+m18 | T: C5.quarter1 C5.eighth C5.quarter D5.eighth E5.eighth
+     | B: F2.eighth C3.eighth F3.eighth C3.eighth A3.eighth C3.eighth F3.eighth C3.eighth
+m19 | T: D5.quarter1 A4.eighth B4.quarter C5.eighth D5.eighth
+     | B: D3.eighth A3.eighth D4.eighth A3.eighth G2.eighth D3.eighth G3.eighth D3.eighth
+m20 | T: C5.half1 C5/E5.eighth G5.eighth
+     | B: C3.eighth G3.eighth C4.eighth D4.eighth E4.eighth G4.eighth rquarter
+m21 | T: E5.quarter1 D5.eighth C5.quarter G5.quarter
+     | B: C3.eighth G3.eighth C4.eighth G3.eighth E4.eighth G3.eighth C4.eighth G3.eighth
+m22 | T: B4.half1 A4.eighth B4.eighth
+     | B: E2.eighth B2.eighth E3.eighth B2.eighth G3.eighth B2.eighth E3.eighth B2.eighth
+m23 | T: A4.quarter1 B4.eighth A4.quarter G4.quarter
+     | B: D2.eighth A2.eighth D3.eighth F#3.eighth A3.eighth F#3.eighth D3.eighth A2.eighth
+m24 | T: E5.half1 G5.quarter
+     | B: C3.eighth G3.eighth C4.eighth G3.eighth E4.eighth G3.eighth C4.eighth G3.eighth
+m25 | T: E5.quarter1 D5.eighth C5.quarter G5.quarter
+     | B: C3.eighth G3.eighth C4.eighth G3.eighth E4.eighth G3.eighth C4.eighth G3.eighth
+m26 | T: B4.half1 A4.eighth B4.eighth
+     | B: E2.eighth B2.eighth E3.eighth B2.eighth G3.eighth B2.eighth E3.eighth B2.eighth
+m27 | T: C5.quarter1 C5.eighth C5.quarter D5.eighth E5.eighth
+     | B: D2.eighth A2.eighth D3.eighth F#3.eighth A3.eighth F#3.eighth D3.eighth A2.eighth
+m28 | T: D5.quarter1 A4/C5.eighth G4/B4.quarter reighth G4.eighth
+     | B: G2.eighth D3.eighth G3.eighth A3.eighth B3.half
+m29 | T: C5.quarter1 E5.eighth G5.quarter1 C5.eighth
+     | B: C3.eighth G3.eighth C4.eighth G3.eighth E4.eighth G3.eighth C3.eighth D3.eighth
+m30 | T: B4.quarter1 E5.eighth G5.quarter reighth G5.eighth
+     | B: E3.eighth B3.eighth E4.eighth B3.eighth G4.eighth B3.eighth E4.eighth B3.eighth
+m31 | T: A5.quarter1 B5.eighth C6.quarter1 A5.eighth
+     | B: F3.eighth C4.eighth F4.eighth C4.eighth A4.eighth C4.eighth F4.eighth C4.eighth
+m32 | T: G5.half1 E5.eighth D5.eighth
+     | B: C3.eighth G3.eighth C4.eighth G3.eighth E4.eighth G3.eighth B2.eighth G3.eighth
+m33 | T: C5.quarter1 C5.eighth C5.quarter E5.eighth D5.eighth
+     | B: A2.eighth E3.eighth A3.eighth E3.eighth C4.eighth E4.eighth G2.eighth E3.eighth
+m34 | T: C5.quarter1 C5.eighth C5.quarter D5.eighth E5.eighth
+     | B: F2.eighth C3.eighth F3.eighth C3.eighth A3.eighth C3.eighth F3.eighth C3.eighth
+m35 | T: D5.quarter1 A4.eighth B4.quarter C5.eighth D5.eighth
+     | B: D3.eighth A3.eighth D4.eighth A3.eighth G2.eighth D3.eighth G3.eighth D3.eighth
+m36 | T: C5.quarter E5.16th D5.16th C5.eighth B4.quarter G4/G5.quarter
+     | B: C3.eighth G3.eighth C4.eighth G3.eighth D3/G3/B3.half
+m37 | T: C5/C6.quarter1 E5/E6.eighth G5/G6.quarter1 C5/C6.eighth
+     | B: C3.eighth G3.eighth C4.eighth G3.eighth E4.eighth G3.eighth C4.eighth G3.eighth
+m38 | T: B4/B5.quarter1 E5/E6.eighth G5/G6.quarter reighth G5/G6.eighth
+     | B: E2.eighth B2.eighth E3.eighth B2.eighth G3.eighth B2.eighth E3.eighth B2.eighth
+m39 | T: A5/A6.quarter1 B5/B6.eighth C6/C7.quarter1 A5/A6.eighth
+     | B: F2.eighth C3.eighth F3.eighth C3.eighth A3.eighth C3.eighth F3.eighth C3.eighth
+m40 | T: G5/G6.half1 E5.eighth D5.eighth
+     | B: C3.eighth G3.eighth C4.eighth D4.eighth E4.eighth G4.eighth rquarter
+m41 | T: A4/C5.quarter1 A4/C5.eighth A4/C5.quarter E5.eighth D5.eighth
+     | B: A2.eighth E3.eighth A3.eighth E3.eighth C4.eighth E3.eighth G2.eighth E3.eighth
+m42 | T: A4/C5.quarter1 A4/C5.eighth A4/C5.quarter D5.eighth E5.eighth
+     | B: F2.eighth C3.eighth F3.eighth C3.eighth A3.eighth C3.eighth F3.eighth C3.eighth
+m43 | T: F#4/D5.quarter1 A4.eighth G4/B4.quarter C5.eighth D5.eighth
+     | B: D3.eighth A3.eighth D4.eighth A3.eighth G2.eighth D3.eighth G3.eighth D3.eighth
+m44 | T: E4/G4/C5.half1 C5/E5.eighth C5/G5.eighth
+     | B: C3.eighth G3.eighth C4.eighth D4.eighth E4.eighth G4.eighth rquarter
+m45 | T: C5.half1 E5.eighth D5.eighth
+     | B: C3.eighth G3.eighth C4.eighth G3.eighth E4.eighth G3.eighth B2.eighth G3.eighth
+m46 | T: C5.quarter1 C5.eighth C5.quarter E5.eighth D5.eighth
+     | B: A2.eighth E3.eighth A3.eighth E3.eighth C4.eighth E4.eighth G2.eighth E3.eighth
+m47 | T: C5.quarter1 C5.eighth C5.quarter D5.eighth E5.eighth
+     | B: F2.eighth C3.eighth F3.eighth C3.eighth A3.eighth C3.eighth F3.eighth C3.eighth
+m48 | T: D5.quarter1 A4.eighth B4.quarter C5.eighth D5.eighth
+     | B: D3.eighth A3.eighth D4.eighth A3.eighth G2.eighth D3.eighth G3.eighth D3.eighth
+m49 | T: C5.quarter E5/G5.eighth D5/F5.eighth C5/E5.quarter B4/D5.eighth A4/C5.eighth
+     | B: C3.eighth G3.eighth C4.eighth G3.eighth A2.eighth E3.eighth A3.eighth E3.eighth
+m50 | T: F4/A4.quarter G4/B4.eighth F4/A4.eighth F4/G#4/C5.quarter F4/G#4/D5.quarter
+     | B: F2.eighth C3.eighth F3.eighth C3.eighth F2.eighth C3.eighth F3.eighth C3.eighth
+m51 | T: G4/C5/E5/G5.whole
+     | B: C3/G3/C4.whole

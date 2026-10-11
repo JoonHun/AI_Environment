@@ -1,0 +1,2 @@
+out/moon_tab_A.gp5: notes=627 problems=0
+out/moon_tab_B.gp5: notes=263 problems=0

@@ -326,12 +326,15 @@
                 </div>
                 ${stageStepper(s.stage)}
             </div>
-            <div class="mt-1 mb-2">
+            <div class="mt-1 mb-2 flex items-center gap-3">
                 <button onclick="forceUnload(${s.port}, this)" class="text-xs font-bold transition-colors ${
                     s.status !== 'standby' && s.status !== 'down' && s.status !== 'degraded'
                         ? 'text-red-400 hover:text-red-300'
                         : 'text-slate-600'
                 }">↓ Unload</button>
+                <button onclick="toggleKeep(${s.port}, this)" class="text-xs font-bold transition-colors ${
+                    s.keep ? 'text-green-400' : 'text-slate-500 hover:text-slate-400'
+                }">${s.keep ? '✓ Keep' : '○ Keep'}</button>
             </div>
             <div class="mt-4">${statsHtml || '<p class="text-slate-500 text-sm">—</p>'}</div>
             ${warnHtml}
@@ -353,6 +356,32 @@
             btn.textContent = '✗ failed';
             setTimeout(() => { btn.textContent = '↓ Unload'; btn.disabled = false; }, 3000);
         }
+    }
+
+    // Keep toggle: ON = green '✓ Keep' (proxy idle-watchdog suppressed),
+    // OFF = gray '○ Keep' (normal idle-unload returns). No load/unload side effect.
+    async function toggleKeep(port, btn) {
+        btn.disabled = true;
+        try {
+            const r = await fetch('/api/keep', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({port: port})
+            });
+            const j = await r.json();
+            if (j.status === 'ok') {
+                // Update in place; the next /api/servers poll (≤3s) reconciles
+                btn.textContent = j.keep ? '✓ Keep' : '○ Keep';
+                btn.className = btn.className.replace(
+                    /text-(green-400|slate-500 hover:text-slate-400)/,
+                    j.keep ? 'text-green-400' : 'text-slate-500 hover:text-slate-400');
+            } else {
+                btn.textContent = '✗ failed';
+            }
+        } catch(e) {
+            btn.textContent = '✗ failed';
+        }
+        btn.disabled = false;
     }
 
     async function updateDashboard() {

@@ -58,30 +58,31 @@ def place(correct, wrongs, idx, seed=0):
 
 
 def place_all(cands, seed=0):
-    """모두 배치 + 연속 1-2-3-4 패턴(①②③④) 제거."""
-    import hashlib
+    """정답 위치 배치 — ①②③④ 균등 분포 + 연속 1-2-3-4 / 4-3-2-1 방지."""
+    import random as _rnd
     n = len(cands)
-    pos = []
-    for i, c in enumerate(cands):
-        h = hashlib.md5(f"{seed}:{i}:{c[:10]}".encode()).hexdigest()
-        p = int(h[0], 16) % 4
-        pos.append(p)
-    # 연속 1-2-3-4 / 4-3-2-1 패턴 제거 (1-pass)
-    changed = True
-    while changed:
-        changed = False
+    # 균등 기반: 0,1,2,3 반복 후 shuffle (시드 고정)
+    base = []
+    for i in range(n):
+        base.append(i % 4)
+    _rnd.Random(seed).shuffle(base)
+    pos = base
+    # 연속 1-2-3-4 / 4-3-2-1 패턴 제거
+    for _pass in range(50):
+        fixed = False
         for i in range(n - 3):
             window = [pos[i], pos[i+1], pos[i+2], pos[i+3]]
             if window in ([0,1,2,3], [3,2,1,0]):
-                # 마지막 위치를 다른 값으로 변경
+                # i+3 위치를 현재 값이 아닌 다른 값으로 변경
                 current = pos[i+3]
-                pos[i+3] = (current + 1) % 4
-                if [pos[i], pos[i+1], pos[i+2], pos[i+3]] in ([0,1,2,3], [3,2,1,0]):
-                    pos[i+3] = (current + 2) % 4
-                if [pos[i], pos[i+1], pos[i+2], pos[i+3]] in ([0,1,2,3], [3,2,1,0]):
-                    pos[i+3] = (current + 3) % 4
-                changed = True
+                for alt in [(current+1)%4, (current+2)%4, (current+3)%4]:
+                    pos[i+3] = alt
+                    if [pos[i], pos[i+1], pos[i+2], pos[i+3]] not in ([0,1,2,3], [3,2,1,0]):
+                        break
+                fixed = True
                 break
+        if not fixed:
+            break
     return pos
 
 
@@ -187,9 +188,40 @@ def split_by_chapter(mcq_list, mcq_per, chapter_split, ch3_topics=None, ch5_topi
     if ch3_topics is None:
         ch3_topics = {"빛의반사","빛의굴절","거울","렌즈","색의합성","파동","소리"}
     if ch5_topics is None:
-        ch5_topics = {"광합성","호흡","기공","무기염류","광합성실험","호흡실험","광합성조건","호흡조건","광합성산물","호흡산물"}
+        ch5_topics = {"광합성","호흡","기공","무기염류","광합성실험","호흡실험","광합성조건","호흡조건","광합성산물","호흡산물","종합"}
     ch3 = [q for q in mcq_list if q[0] in ch3_topics]
     ch5 = [q for q in mcq_list if q[0] in ch5_topics]
+    # 단일 장 뱅크(3장만 또는 5장만) → 해당 장 전체 사용
+    if not ch3:
+        n3, n5 = 0, mcq_per
+    elif not ch5:
+        n3, n5 = mcq_per, 0
+
+    # 단일 장 (토픽 매칭 없음) → 순서대로 분배
+    if not ch3 and not ch5:
+        import random
+        out = []
+        for r in range(len(mcq_list) // mcq_per):
+            rng = random.Random(r * 7919)
+            chunk = list(mcq_list[r*mcq_per:(r+1)*mcq_per])
+            rng.shuffle(chunk)
+            out.append(chunk)
+        return out
+
+    # 단일 장(3장만 또는 5장만) → 순서 슬라이스로 회차 간 무중복 보장
+    # 마지막 회차는 뱅크의 마지막 mcq_per 개(마지막 회차 블록)를 사용
+    if (not ch3) != (not ch5):
+        group = ch5 if not ch3 else ch3
+        n = len(group)
+        nrounds = n // mcq_per
+        out = []
+        for r in range(nrounds):
+            if r == nrounds - 1 and n % mcq_per != 0:
+                chunk = list(group[-mcq_per:])
+            else:
+                chunk = list(group[r * mcq_per:(r + 1) * mcq_per])
+            out.append(chunk)
+        return out
 
     # 회차별 분배
     import random
@@ -215,9 +247,11 @@ def main():
     ap.add_argument("--title", required=True, help="단원명 (예: V. 식물과 에너지)")
     ap.add_argument("--subject", required=True, help="푸터/메타 (예: 천재 중학 과학 2 · 5장 식물과 에너지)")
     ap.add_argument("--rounds", type=int, default=3, help="회차 수 (기본 3)")
+    ap.add_argument("--start", type=int, default=1, help="생성 시작 회차 (기본 1)")
     ap.add_argument("--mcq-per", type=int, default=25, help="회차별 객관식 수 (기본 25)")
     ap.add_argument("--sa-per", type=int, default=5, help="회차별 주관식 수 (기본 5)")
     ap.add_argument("--tag", default="문제", help="파일명 접두 (예: 5장_식물과에너지_문제)")
+    ap.add_argument("--suffix", default="", help="회차 번호 뒤 접미 (예: ' POST FIX')")
     ap.add_argument("--ch4-ratio", type=float, default=0.5, help="4장 비율 (기본 0.5)")
     ap.add_argument("--ch5-ratio", type=float, default=0.5, help="5장 비율 (기본 0.5)")
     a = ap.parse_args()
@@ -226,8 +260,9 @@ def main():
     bank = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(bank)
     MCQ, SA = bank.MCQ, bank.SA
-    if len(MCQ) < a.mcq_per * a.rounds or len(SA) < a.sa_per * a.rounds:
-        sys.exit(f"뱅크 부족: MCQ {len(MCQ)}/{a.mcq_per*a.rounds}, SA {len(SA)}/{a.sa_per*a.rounds} 필요")
+    need_rounds = (a.start - 1) + a.rounds
+    if len(MCQ) < a.mcq_per * need_rounds or len(SA) < a.sa_per * need_rounds:
+        sys.exit(f"뱅크 부족: MCQ {len(MCQ)}/{a.mcq_per*need_rounds}, SA {len(SA)}/{a.sa_per*need_rounds} 필요")
 
     outdir = os.path.abspath(a.outdir)
     htmlout = a.htmlout or os.path.join(outdir, "work")
@@ -237,15 +272,17 @@ def main():
     rounds_mcq = split_by_chapter(MCQ, a.mcq_per, (a.ch4_ratio, a.ch5_ratio))
 
     for r in range(a.rounds):
-        mcq = rounds_mcq[r]
-        sa = SA[r * a.sa_per:(r + 1) * a.sa_per]
-        html = build_round(r + 1, a.title, a.subject, mcq, sa)
-        html_path = os.path.join(htmlout, f"{a.tag}_0{r+1}.html")
-        pdf_path = os.path.join(outdir, f"{a.tag}_0{r+1}.pdf")
+        idx = a.start - 1 + r          # 뱅크에서 가져올 회차 인덱스
+        rn = a.start + r               # 표시되는 회차 번호
+        mcq = rounds_mcq[idx]
+        sa = SA[idx * a.sa_per:(idx + 1) * a.sa_per]
+        html = build_round(rn, a.title, a.subject, mcq, sa)
+        html_path = os.path.join(htmlout, f"{a.tag}_0{rn}{a.suffix}.html")
+        pdf_path = os.path.join(outdir, f"{a.tag}_0{rn}{a.suffix}.pdf")
         with open(html_path, "w", encoding="utf-8") as f:
             f.write(html)
         HTML(string=html).write_pdf(pdf_path)
-        print(f"round{r+1}: {os.path.getsize(pdf_path)//1024}KB -> {pdf_path}")
+        print(f"round{rn}: {os.path.getsize(pdf_path)//1024}KB -> {pdf_path}")
     print("ALL_DONE")
 
 
