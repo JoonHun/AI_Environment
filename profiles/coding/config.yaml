@@ -14,7 +14,7 @@ onboarding:
   seen:
     busy_input_prompt: true
     profile_build_offered: true
-_config_version: 46
+_config_version: 50
 ide_environment:
   - VS code
   - PC application

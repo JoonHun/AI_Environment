@@ -32,7 +32,7 @@ gateway:
 onboarding:
   seen:
     busy_input_prompt: true
-_config_version: 46
+_config_version: 50
 ide_environment:
   - VS code
   - PC application
@@ -60,3 +60,8 @@ auxiliary:
     model: gemma4-26b-a4b-mtp-q4_k_m
     api_key: not-needed
     timeout: 300
+telemetry:
+  shared_metrics:
+    enabled: true
+    send: false
+    offer_version: 2

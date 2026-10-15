@@ -13,7 +13,7 @@ gateway:
 onboarding:
   seen:
     busy_input_prompt: true
-_config_version: 46
+_config_version: 50
 learning_goal: Middle school grade 2 natural conversation
 persona_name: Sam
 temperature: 0.7
