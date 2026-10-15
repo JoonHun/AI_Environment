@@ -117,8 +117,8 @@ tui-theme-boot.json
 *.mp3
 *.gp4
 *.zip
-profiles/joins/attachments/
-profiles/coding/attachments/
+profiles/joins/attachments/*
+profiles/coding/attachments/*
 # generated outputs
 services/music_score/pdf2tab/
 services/music_score/*.json
